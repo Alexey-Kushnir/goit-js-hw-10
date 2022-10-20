@@ -1,5 +1,7 @@
 import './css/styles.css';
-// import fetchCountries from './fetchCountries.js';uk
+import CountriesApiService from './components/countries-api-service';
+import murckupForCountries from './components/countries-murkup';
+import murckupForCountry from './components/country-murkup';
 import Notiflix from 'notiflix';
 import debounce from 'lodash.debounce';
 
@@ -8,30 +10,41 @@ const searchBox = document.querySelector('#search-box');
 const countryList = document.querySelector('.country-list');
 const countryInfo = document.querySelector('.country-info');
 
-function fetchCountries(e) {
-  const searchQuery = e.target.value.trim();
-  const url = `https://restcountries.com/v3.1/name/${searchQuery}?fields=name,capital,population,flags,languages`;
-  if (searchQuery === '') {
+const countriesApiService = new CountriesApiService();
+
+searchBox.addEventListener('input', debounce(onSearch, DEBOUNCE_DELAY));
+
+function onSearch(e) {
+  if (e.target.value === '') {
+    removeMarkup();
     return;
   }
-  return fetch(url)
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(
-          Notiflix.Notify.failure('Oops, there is no country with that name')
-        );
-      }
-      return response.json();
-    })
-    .then(data => {
-      if (data.length > 10) {
-        Notiflix.Notify.info(
-          'Too many matches found. Please enter a more specific name.'
-        );
-      } else {
-        console.log(data);
-      }
-    });
+  removeMarkup();
+  countriesApiService.query = e.target.value.trim();
+  countriesApiService.fetchCountries().then(createMarkup);
 }
 
-searchBox.addEventListener('input', debounce(fetchCountries, DEBOUNCE_DELAY));
+function createMarkup(data) {
+  if (data.length > 10) {
+    Notiflix.Notify.info(
+      'Too many matches found. Please enter a more specific name.'
+    );
+  }
+  if (data.length <= 10 && data.length !== 1) {
+    countryList.insertAdjacentHTML(
+      'beforeend',
+      data.map(murckupForCountries).join('')
+    );
+  }
+  if (data.length === 1) {
+    countryInfo.insertAdjacentHTML(
+      'beforeend',
+      data.map(murckupForCountry).join('')
+    );
+  }
+}
+
+function removeMarkup() {
+  countryList.innerHTML = '';
+  countryInfo.innerHTML = '';
+}
