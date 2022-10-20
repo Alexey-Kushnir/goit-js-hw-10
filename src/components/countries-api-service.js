@@ -1,4 +1,5 @@
 import Notiflix from 'notiflix';
+const BASE_URL = 'https://restcountries.com/v3.1/name';
 const FILTER = 'fields=name,capital,population,flags,languages';
 
 export default class CountriesApiService {
@@ -7,7 +8,7 @@ export default class CountriesApiService {
   }
 
   fetchCountries() {
-    const url = `https://restcountries.com/v3.1/name/${this.searchQuery}?${FILTER}`;
+    const url = `${BASE_URL}/${this.searchQuery}?${FILTER}`;
 
     if (this.searchQuery === '') {
       return;
